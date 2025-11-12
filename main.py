@@ -1,0 +1,88 @@
+import matplotlib.pyplot as plt
+import plotly.graph_objects as go
+import plotly.express as px
+import pandas as pd
+
+df_nobel = pd.read_csv('nobel_prize_data.csv')
+
+# Challenge 1
+# Preliminary data exploration.
+# What is the shape of df_data? How many rows and columns?
+print(f'The shape is: {df_nobel.shape}')
+# What are the column names and what kind of data is inside of them?
+for title in df_nobel:
+    print(f'the title column is: {title}, and the type of data is: {type(df_nobel[title].loc[1])}')
+# In which year was the Nobel prize first awarded?
+print(f"The first awarded year is: {df_nobel['year'].min()}")
+
+# Which year is the latest year included in the dataset?
+print(f"The latest year is: {df_nobel['year'].max()}")
+
+# Challenge 2
+# Are there any duplicate values in the dataset?
+print(f'There are {df_nobel.duplicated().values.sum()} duplicated values in DataFrame')
+# Are there NaN values in the dataset?
+print(f'There are {df_nobel.isna().values.sum()} NaN values in DataFrame')
+
+# Which columns tend to have NaN values?
+print(df_nobel.isna().sum())
+# How many NaN values are there per column?
+for title in df_nobel:
+    print(f'the column {title} contain {df_nobel[title].isna().values.sum()} NaN values')
+
+# Why do these columns have NaN values?
+#
+# Challenge 3
+# Convert the birth_date column to Pandas Datetime objects
+df_nobel['birth_date'] = pd.to_datetime(df_nobel['birth_date'])
+print(df_nobel.info())
+
+# Add a Column called share_pct which has the laureates' share as a percentage in the form of a floating-point number.
+separated_values = df_nobel.prize_share.str.split('/', expand=True)
+numerator = pd.to_numeric(separated_values[0])
+denomenator = pd.to_numeric(separated_values[1])
+df_nobel['share_pct'] = numerator / denomenator
+
+# Create a donut chart using plotly which shows how many prizes went to men compared to how many prizes went to women.
+# What percentage of all the prizes went to women?
+nobel_prize_sex = df_nobel['sex'].value_counts()
+print('The prize divided by sex')
+print(nobel_prize_sex.index)
+print(nobel_prize_sex.values)
+# Creating a graph
+donut = go.Figure(data=[go.Pie(labels=nobel_prize_sex.index, values=nobel_prize_sex.values, hole=.3)])
+# donut.show()
+
+# What are the names of the first 3 female Nobel laureates?
+# What did the win the prize for?
+# What do you see in their birth_country? Were they part of an organisation?
+print(df_nobel[df_nobel.sex == 'Female'].head().sort_values('year', ascending=True)[:3])
+
+
+# Did some people get a Nobel Prize more than once? If so, who were they?
+is_winner = df_nobel.duplicated(subset=['full_name'], keep=False)
+multiplo_winner =df_nobel[is_winner]
+print(multiplo_winner.head())
+
+print(is_winner.head())
+
+# In how many categories are prizes awarded?
+graph_cat = df_nobel.category.value_counts()
+print(df_nobel.category.value_counts())
+# Use the color scale called Aggrnyl to colour the chart, but don't show a color axis.
+# Which category has the most number of prizes awarded?
+# Which category has the fewest number of prizes awarded?
+# Create a plotly bar chart with the number of prizes awarded by category.
+cat = go.Figure(data=[go.Pie(labels=graph_cat.index, values=graph_cat.values)])
+# cat.show()
+
+# When was the first prize in the field of Economics awarded?
+print('When was the first prize in the field of Economics awarded?')
+# Who did the prize go to?
+print(df_nobel[df_nobel.category == 'Economics'].sort_values('year', ascending=True)[:1])
+
+# Create a plotly bar chart that shows the split between men and women by category.
+category_woman_man = df_nobel.groupby(['category', 'sex'], as_index=False).agg({'prize': pd.Series.count})
+category_woman_man.sort_values('prize',ascending=False ,inplace=True)
+fig = px.bar( x=category_woman_man.category, y=category_woman_man.prize, color=category_woman_man.sex, title="Number of prizes")
+fig.show()
