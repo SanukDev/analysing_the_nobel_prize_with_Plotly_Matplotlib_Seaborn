@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import plotly.graph_objects as go
 import plotly.express as px
 import pandas as pd
+import numpy as np
 
 df_nobel = pd.read_csv('nobel_prize_data.csv')
 
@@ -85,4 +86,115 @@ print(df_nobel[df_nobel.category == 'Economics'].sort_values('year', ascending=T
 category_woman_man = df_nobel.groupby(['category', 'sex'], as_index=False).agg({'prize': pd.Series.count})
 category_woman_man.sort_values('prize',ascending=False ,inplace=True)
 fig = px.bar( x=category_woman_man.category, y=category_woman_man.prize, color=category_woman_man.sex, title="Number of prizes")
-fig.show()
+# fig.show()
+
+# Are more prizes awarded recently than when the prize was first created? Show the trend in awards visually.
+# Count the number of prizes awarded every year.
+# Create a 5 year rolling average of the number of prizes (Hint: see previous lessons analysing Google Trends).
+# Using Matplotlib superimpose the rolling average on a scatter plot.
+# Show a tick mark on the x-axis for every 5 years from 1900 to 2020. (Hint: you'll need to use NumPy).
+
+prize_per_year = df_nobel.groupby(by='year').count().prize
+moving_average = prize_per_year.rolling(window=5).mean()
+print(prize_per_year.head())
+print(moving_average)
+
+# Starting the graph
+# plt.scatter(x=prize_per_year.index,
+#             y=prize_per_year.values,
+#             c='dodgerblue',
+#             alpha=0.7,
+#             s=100, )
+#
+# plt.plot(prize_per_year.index,
+#          moving_average.values,
+#          c='crimson',
+#          linewidth=3, )
+#
+# plt.show()
+
+# Implementing the .xticks(), and .yticks() to fine-tune the chart.
+
+plt.figure(figsize=(16, 8), dpi=200)
+plt.title('Number of Nobel Prizes Awarded per Year', fontsize=18)
+plt.yticks(fontsize=14)
+plt.xticks(ticks=np.arange(1900, 2021, step=5),
+           fontsize=14,
+           rotation=45)
+
+ax = plt.gca()  # get current axis
+ax.set_xlim(1900, 2020)
+
+ax.scatter(x=prize_per_year.index,
+           y=prize_per_year.values,
+           c='dodgerblue',
+           alpha=0.7,
+           s=100, )
+
+ax.plot(prize_per_year.index,
+        moving_average.values,
+        c='crimson',
+        linewidth=3, )
+
+# plt.show()
+
+# Investigate if more prizes are shared than before.
+# Calculate the average prize share of the winners on a year by year basis.
+# Calculate the 5 year rolling average of the percentage share
+# Copy-paste the cell from the chart you created above.
+# Modify the code to add a secondary axis to your Matplotlib chart.
+# Plot the rolling average of the prize share on this chart.
+# See if you can invert the secondary y-axis to make the relationship even more clear.
+
+
+yearly_avg_share = df_nobel.groupby(by='year').agg({'share_pct': pd.Series.mean})
+share_moving_average = yearly_avg_share.rolling(window=5).mean()
+
+
+plt.figure(figsize=(16, 8), dpi=200)
+plt.title('Number of Nobel Prizes Awarded per Year', fontsize=18)
+plt.yticks(fontsize=14)
+plt.xticks(ticks=np.arange(1900, 2021, step=5),
+           fontsize=14,
+           rotation=45)
+
+ax1 = plt.gca()
+ax2 = ax1.twinx()  # create second y-axis
+ax1.set_xlim(1900, 2020)
+
+ax1.scatter(x=prize_per_year.index,
+            y=prize_per_year.values,
+            c='dodgerblue',
+            alpha=0.7,
+            s=100, )
+
+ax1.plot(prize_per_year.index,
+         moving_average.values,
+         c='crimson',
+         linewidth=3, )
+
+# Adding prize share plot on second axis
+ax2.plot(prize_per_year.index,
+         share_moving_average.values,
+         c='grey',
+         linewidth=3, )
+
+# plt.show()
+
+# Create a Pandas DataFrame called top20_countries that has the two columns. The prize column should contain the total number of prizes won.
+
+top20_countries = df_nobel['organization_country'].value_counts()
+print(top20_countries.values)
+new = {
+    'organization_country': top20_countries.index,
+    'prize': top20_countries.values
+}
+# Creating DataFrame
+top20_countries = pd.DataFrame(new)
+print(top20_countries.head())
+
+h_fig = go.Figure(go.Bar(x= top20_countries['prize'][:20], y=top20_countries['organization_country'][:20], orientation='h'))
+
+# h_fig.show()
+
+# Create this choropleth map using the plotly documentation:
