@@ -183,18 +183,70 @@ ax2.plot(prize_per_year.index,
 
 # Create a Pandas DataFrame called top20_countries that has the two columns. The prize column should contain the total number of prizes won.
 
-top20_countries = df_nobel['organization_country'].value_counts()
-print(top20_countries.values)
-new = {
-    'organization_country': top20_countries.index,
-    'prize': top20_countries.values
-}
-# Creating DataFrame
-top20_countries = pd.DataFrame(new)
-print(top20_countries.head())
+# top20_countries = df_nobel['organization_country'].value_counts()
+# top20_code = df_nobel['ISO'].value_counts()
+# print(top20_countries.values)
+# print(top20_code.values)
+# new = {
+#     'organization_country': top20_countries.index,
+#     'prize': top20_countries.values
+# }
+# new_code = {
+#     'ISO': top20_code.index,
+#     'prize': top20_code.values
+# }
+# # Creating DataFrame
+# top20_countries = pd.DataFrame(new)
+# top20_code = pd.DataFrame(new_code)
+#
+# print(top20_countries.head())
+# print(top20_code.head())
+#
+# h_fig = go.Figure(go.Bar(x= top20_countries['prize'][:20], y=top20_countries['organization_country'][:20], orientation='h'))
+#
+# # h_fig.show()
+#
+# # Create this choropleth map using the plotly documentation:
+#
+# fig_map = go.Figure(data=go.Choropleth(
+#     locations = top20_code['ISO'][:20],
+#     z = top20_countries['prize'][:20],
+#     text = top20_countries['organization_country'][:20],
+#     colorscale = 'plasma',
+#     autocolorscale=True,
+#     reversescale=False,
+# ))
+#
+# fig_map.update_layout(
+#     title_text='Nobel Prize analysis',
+#     geo=dict(
+#         showframe=False,
+#         showcoastlines=False,
+#         projection_type='equirectangular'
+#     ),
+#     annotations = [dict(
+#         x=0.55,
+#         y=0.1,
+#         xref='paper',
+#         yref='paper',
+#         text='Nobel Prize',
+#         showarrow = False
+#     )]
+# )
+#
+# fig_map.show()
 
-h_fig = go.Figure(go.Bar(x= top20_countries['prize'][:20], y=top20_countries['organization_country'][:20], orientation='h'))
 
-# h_fig.show()
+df_countries = df_nobel.groupby(['birth_country_current', 'ISO'],
+                               as_index=False).agg({'prize': pd.Series.count})
+df_countries.sort_values('prize', ascending=False)
 
-# Create this choropleth map using the plotly documentation:
+world_map = px.choropleth(df_countries,
+                          locations='ISO',
+                          color='prize',
+                          hover_name='birth_country_current',
+                          color_continuous_scale=px.colors.sequential.matter)
+
+world_map.update_layout(coloraxis_showscale=True, )
+
+world_map.show()
